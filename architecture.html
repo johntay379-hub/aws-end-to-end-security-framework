@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AWS Security Framework — Architecture</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #070b12;
+      --surface: #0e1520;
+      --surface2: #141d2e;
+      --border: rgba(148,210,255,0.08);
+      --border2: rgba(148,210,255,0.18);
+      --text: #e8f0fe;
+      --text2: #7a9bbf;
+      --text3: #3d5470;
+      --blue: #4a9eff;
+      --teal: #00d4aa;
+      --green: #00e676;
+      --purple: #b388ff;
+      --amber: #ffb74d;
+      --coral: #ff7043;
+      --pink: #f48fb1;
+      --gray: #546e7a;
+    }
+
+    body {
+      font-family: 'IBM Plex Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 48px 24px;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(74,158,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(74,158,255,0.025) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 48px;
+      position: relative;
+    }
+
+    .label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--blue);
+      margin-bottom: 12px;
+      opacity: 0.8;
+    }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .sub {
+      font-size: 0.9rem;
+      color: var(--text2);
+      font-family: 'IBM Plex Mono', monospace;
+    }
+
+    /* ── Diagram canvas ── */
+    .canvas {
+      width: 100%;
+      max-width: 900px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 40px;
+      position: relative;
+    }
+
+    svg.arch {
+      width: 100%;
+      height: auto;
+      overflow: visible;
+    }
+
+    /* ── Node styles ── */
+    .node { cursor: pointer; }
+    .node:hover rect, .node:hover polygon { filter: brightness(1.15); }
+    .node:hover { opacity: 0.92; }
+
+    /* ── Tooltip ── */
+    .tooltip {
+      position: fixed;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: var(--text2);
+      font-family: 'IBM Plex Mono', monospace;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s;
+      z-index: 100;
+      max-width: 220px;
+      line-height: 1.5;
+    }
+    .tooltip.show { opacity: 1; }
+
+    /* ── Legend ── */
+    .legend {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 32px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-family: 'IBM Plex Mono', monospace;
+      color: var(--text2);
+    }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+    }
+
+    /* ── Pulse animation for active nodes ── */
+    @keyframes nodePulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+
+    .active-node rect {
+      animation: nodePulse 2s ease-in-out infinite;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      margin-top: 32px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: var(--text3);
+      text-align: center;
+    }
+
+    .footer strong { color: var(--blue); }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="label">Architecture Diagram</div>
+  <h1>AWS End-to-End Security Framework</h1>
+  <div class="sub">Hover over any service to learn more · us-east-1 · Deployed via CLI</div>
+</div>
+
+<div class="canvas">
+  <svg class="arch" viewBox="0 0 820 580" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+        <path d="M2 1L8 5L2 9" fill="none" stroke="#4a9eff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </marker>
+      <marker id="arr-amber" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+        <path d="M2 1L8 5L2 9" fill="none" stroke="#ffb74d" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </marker>
+      <marker id="arr-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+        <path d="M2 1L8 5L2 9" fill="none" stroke="#00e676" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </marker>
+      <marker id="arr-coral" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+        <path d="M2 1L8 5L2 9" fill="none" stroke="#ff7043" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </marker>
+      <marker id="arr-dashed" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+        <path d="M2 1L8 5L2 9" fill="none" stroke="#3d5470" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </marker>
+    </defs>
+
+    <!-- ── Internet ── -->
+    <g class="node" data-tip="Public internet traffic enters through port 80/443">
+      <rect x="310" y="16" width="200" height="48" rx="10" fill="#0d1e35" stroke="#4a9eff" stroke-width="1"/>
+      <text x="410" y="38" text-anchor="middle" fill="#4a9eff" font-family="IBM Plex Mono" font-size="11" font-weight="500" letter-spacing="1">INTERNET</text>
+      <text x="410" y="54" text-anchor="middle" fill="#3d5470" font-family="IBM Plex Mono" font-size="9">HTTP / HTTPS</text>
+    </g>
+
+    <!-- Arrow: Internet → IGW -->
+    <line x1="410" y1="64" x2="410" y2="100" stroke="#4a9eff" stroke-width="1" marker-end="url(#arr)"/>
+
+    <!-- ── Internet Gateway ── -->
+    <g class="node" data-tip="Internet Gateway — controls all inbound and outbound traffic to the VPC">
+      <rect x="285" y="100" width="250" height="48" rx="10" fill="#0a2020" stroke="#00d4aa" stroke-width="1"/>
+      <text x="410" y="122" text-anchor="middle" fill="#00d4aa" font-family="IBM Plex Mono" font-size="11" font-weight="500" letter-spacing="1">INTERNET GATEWAY</text>
+      <text x="410" y="138" text-anchor="middle" fill="#3d5470" font-family="IBM Plex Mono" font-size="9">VPC entry point</text>
+    </g>
+
+    <!-- Arrow: IGW → VPC -->
+    <line x1="410" y1="148" x2="410" y2="176" stroke="#00d4aa" stroke-width="1" marker-end="url(#arr)"/>
+
+    <!-- ── VPC Container ── -->
+    <rect x="30" y="176" width="760" height="220" rx="14" fill="rgba(14,21,32,0.8)" stroke="rgba(148,210,255,0.12)" stroke-width="1" stroke-dasharray="6 4"/>
+    <text x="52" y="200" fill="#3d5470" font-family="IBM Plex Mono" font-size="10" font-weight="500" letter-spacing="0.08em">VPC — 10.0.0.0/16</text>
+
+    <!-- Public Subnet -->
+    <rect x="50" y="210" width="320" height="168" rx="10" fill="rgba(0,212,170,0.04)" stroke="rgba(0,212,170,0.15)" stroke-width="0.5"/>
+    <text x="70" y="230" fill="#00d4aa" font-family="IBM Plex Mono" font-size="9" letter-spacing="0.06em">PUBLIC SUBNET · 10.0.1.0/24</text>
+
+    <!-- EC2 Web Server -->
+    <g class="node active-node" data-tip="EC2 t2.micro running Apache — IMDSv2 enforced, Elastic IP: 100.49.157.164">
+      <rect x="70" y="244" width="280" height="60" rx="8" fill="#0a1f0f" stroke="#00e676" stroke-width="1"/>
+      <text x="210" y="268" text-anchor="middle" fill="#00e676" font-family="IBM Plex Mono" font-size="11" font-weight="500">EC2 WEB SERVER</text>
+      <text x="210" y="286" text-anchor="middle" fill="#3d5470" font-family="IBM Plex Mono" font-size="9">Apache · t2.micro · 100.49.157.164</text>
+    </g>
+
+    <!-- Bastion Host -->
+    <g class="node" data-tip="Bastion host — secure SSH jump server, port 22 only">
+      <rect x="70" y="316" width="280" height="44" rx="8" fill="#0d1520" stroke="#546e7a" stroke-width="0.5"/>
+      <text x="210" y="336" text-anchor="middle" fill="#7a9bbf" font-family="IBM Plex Mono" font-size="10" font-weight="500">BASTION HOST</text>
+      <text x="210" y="350" text-anchor="middle" fill="#3d5470" font-family="IBM Plex Mono" font-size="9">SSH port 22 only</text>
+    </g>
+
+    <!-- Private Subnet -->
+    <rect x="450" y="210" width="320" height="168" rx="10" fill="rgba(179,136,255,0.03)" stroke="rgba(179,136,255,0.12)" stroke-width="0.5"/>
+    <text x="470" y="230" fill="#b388ff" font-family="IBM Plex Mono" font-size="9" letter-spacing="0.06em">PRIVATE SUBNET · 10.0.2.0/24</text>
+
+    <!-- Future DB -->
+    <g class="node" data-tip="Reserved for future database layer — no public internet access">
+      <rect x="470" y="254" width="280" height="100" rx="8" fill="#110d1f" stroke="rgba(179,136,255,0.2)" stroke-width="0.5" stroke-dasharray="4 3"/>
+      <text x="610" y="296" text-anchor="middle" fill="#5c4b80" font-family="IBM Plex Mono" font-size="10">FUTURE DB LAYER</text>
+      <text x="610" y="316" text-anchor="middle" fill="#3d2e55" font-family="IBM Plex Mono" font-size="9">No public access</text>
+    </g>
+
+    <!-- Security Group labels -->
+    <text x="68" y="396" fill="#3d5470" font-family="IBM Plex Mono" font-size="8">SG: ports 80, 443, 22</text>
+
+    <!-- ── Bottom row ── -->
+
+    <!-- IAM -->
+    <g class="node" data-tip="IAM — least privilege roles, strong password policy, EC2 instance profile, no hardcoded credentials">
+      <rect x="30" y="430" width="160" height="64" rx="8" fill="#0d1a30" stroke="#4a9eff" stroke-width="0.8"/>
+      <text x="110" y="454" text-anchor="middle" fill="#4a9eff" font-family="IBM Plex Mono" font-size="11" font-weight="500">IAM</text>
+      <text x="110" y="470" text-anchor="middle" fill="#3d5470" font-family="IBM Plex Mono" font-size="8">Least privilege</text>
+      <text x="110" y="482" text-anchor="middle" fill="#3d5470" font-family="IBM Plex Mono" font-size="8">Password policy</text>
+    </g>
+
+    <!-- CloudTrail -->
+    <g class="node" data-tip="CloudTrail — multi-region trail, captures all API events, log file validation enabled, delivers to S3">
+      <rect x="215" y="430" width="165" height="64" rx="8" fill="#1a1200" stroke="#ffb74d" stroke-width="0.8"/>
+      <text x="297" y="454" text-anchor="middle" fill="#ffb74d" font-family="IBM Plex Mono" font-size="11" font-weight="500">CLOUDTRAIL</text>
+      <text x="297" y="470" text-anchor="middle" fill="#3d5470" font-family="IBM Plex Mono" font-size="8">Multi-region</text>
+      <text x="297" y="482" text-anchor="middle" fill="#3d5470" font-family="IBM Plex Mono" font-size="8">Tamper-proof logs</text>
+    </g>
+
+    <!-- S3 -->
+    <g class="node" data-tip="S3 Audit Vault — AES-256 encrypted, versioned, all public access blocked, bucket: john-audit-logs-2026">
+      <rect x="405" y="430" width="165" height="64" rx="8" fill="#1a1200" stroke="#ffb74d" stroke-width="0.8"/>
+      <text x="487" y="454" text-anchor="middle" fill="#ffb74d" font-family="IBM Plex Mono" font-size="11" font-weight="500">S3 AUDIT VAULT</text>
+      <text x="487" y="470" text-anchor="middle" fill="#3d5470" font-family="IBM Plex Mono" font-size="8">AES-256 encrypted</text>
+      <text x="487" y="482" text-anchor="middle" fill="#3d5470" font-family="IBM Plex Mono" font-size="8">Versioned + private</text>
+    </g>
+
+    <!-- CloudWatch -->
+    <g class="node" data-tip="CloudWatch — CPU alarm (>80%), status check alarm, IAM policy change alarm">
+      <rect x="595" y="430" width="100" height="64" rx="8" fill="#1a0e08" stroke="#ff7043" stroke-width="0.8"/>
+      <text x="645" y="454" text-anchor="middle" fill="#ff7043" font-family="IBM Plex Mono" font-size="10" font-weight="500">CLOUDWATCH</text>
+      <text x="645" y="470" text-anchor="middle" fill="#3d5470" font-family="IBM Plex Mono" font-size="8">3 alarms</text>
+      <text x="645" y="482" text-anchor="middle" fill="#3d5470" font-family="IBM Plex Mono" font-size="8">active</text>
+    </g>
+
+    <!-- SNS -->
+    <g class="node" data-tip="SNS — john-security-alerts topic, email confirmed, real-time alerts to johntay379@gmail.com">
+      <rect x="715" y="430" width="75" height="64" rx="8" fill="#1a0810" stroke="#f48fb1" stroke-width="0.8"/>
+      <text x="752" y="454" text-anchor="middle" fill="#f48fb1" font-family="IBM Plex Mono" font-size="10" font-weight="500">SNS</text>
+      <text x="752" y="470" text-anchor="middle" fill="#3d5470" font-family="IBM Plex Mono" font-size="8">Email</text>
+      <text x="752" y="482" text-anchor="middle" fill="#3d5470" font-family="IBM Plex Mono" font-size="8">alerts</text>
+    </g>
+
+    <!-- ── Connectors ── -->
+
+    <!-- EC2 → CloudTrail (API activity logged) -->
+    <path d="M210 396 L210 416 L297 416 L297 430" fill="none" stroke="#ffb74d" stroke-width="0.8" stroke-dasharray="4 3" marker-end="url(#arr-amber)"/>
+
+    <!-- CloudTrail → S3 (log delivery) -->
+    <line x1="380" y1="462" x2="405" y2="462" stroke="#ffb74d" stroke-width="1" marker-end="url(#arr-amber)"/>
+
+    <!-- EC2 → CloudWatch (metrics) -->
+    <path d="M350 274 L645 274 L645 430" fill="none" stroke="#ff7043" stroke-width="0.8" stroke-dasharray="4 3" marker-end="url(#arr-coral)"/>
+
+    <!-- CloudWatch → SNS (alerts) -->
+    <line x1="695" y1="462" x2="715" y2="462" stroke="#ff7043" stroke-width="1" marker-end="url(#arr-coral)"/>
+
+    <!-- IAM → EC2 (role assigned) -->
+    <path d="M110 430 L110 410 L210 410 L210 304" fill="none" stroke="#4a9eff" stroke-width="0.8" stroke-dasharray="3 3" marker-end="url(#arr)"/>
+
+    <!-- IGW → EC2 -->
+    <path d="M360 148 L210 148 L210 244" fill="none" stroke="#00d4aa" stroke-width="0.8" marker-end="url(#arr)"/>
+  </svg>
+</div>
+
+<!-- Legend -->
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#4a9eff"></div>IAM / Networking</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#00d4aa"></div>VPC / Routing</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#00e676"></div>Compute (EC2)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#ffb74d"></div>Logging (CloudTrail + S3)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#ff7043"></div>Monitoring (CloudWatch)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#f48fb1"></div>Alerting (SNS)</div>
+</div>
+
+<div class="footer">
+  Built by <strong>John</strong> · AWS Cloud Security Engineer · April 2026 · Region: us-east-1
+</div>
+
+<!-- Tooltip -->
+<div class="tooltip" id="tip"></div>
+
+<script>
+  const tip = document.getElementById('tip');
+  document.querySelectorAll('.node').forEach(node => {
+    node.addEventListener('mouseenter', e => {
+      tip.textContent = node.dataset.tip;
+      tip.classList.add('show');
+    });
+    node.addEventListener('mousemove', e => {
+      tip.style.left = (e.clientX + 14) + 'px';
+      tip.style.top = (e.clientY - 10) + 'px';
+    });
+    node.addEventListener('mouseleave', () => {
+      tip.classList.remove('show');
+    });
+  });
+</script>
+</body>
+</html>
