@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AWS Security Framework — Built by John</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg: #060912; --surface: #0d1321; --surface2: #111827;
+      --border: rgba(99,179,255,0.12); --border2: rgba(99,179,255,0.25);
+      --blue: #3b82f6; --teal: #14b8a6; --green: #22c55e;
+      --purple: #a855f7; --amber: #f59e0b;
+      --text: #f1f5f9; --text2: #94a3b8; --text3: #475569;
+    }
+    body { font-family: 'Space Grotesk', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+    body::before { content: ''; position: fixed; inset: 0; background-image: linear-gradient(rgba(59,130,246,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(59,130,246,0.03) 1px, transparent 1px); background-size: 40px 40px; pointer-events: none; z-index: 0; }
+    .wrap { position: relative; z-index: 1; max-width: 1000px; margin: 0 auto; padding: 60px 24px; }
+    .header { text-align: center; margin-bottom: 64px; }
+    .badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3); border-radius: 100px; padding: 6px 16px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #93c5fd; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 28px; }
+    .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    h1 { font-size: clamp(2.2rem, 5vw, 3.8rem); font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; margin-bottom: 16px; }
+    h1 span { background: linear-gradient(135deg, #60a5fa, #34d399, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .subtitle { font-size: 1.05rem; color: var(--text2); max-width: 520px; margin: 0 auto 32px; line-height: 1.7; }
+    .meta { display: flex; justify-content: center; gap: 24px; flex-wrap: wrap; }
+    .meta-item { display: flex; align-items: center; gap: 6px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text3); }
+    .meta-item span { color: var(--text2); }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-bottom: 48px; }
+    .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; text-align: center; }
+    .stat-num { font-size: 2rem; font-weight: 700; font-family: 'JetBrains Mono', monospace; background: linear-gradient(135deg, #60a5fa, #34d399); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .stat-label { font-size: 12px; color: var(--text3); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.06em; }
+    .section-title { font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--text3); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 20px; display: flex; align-items: center; gap: 12px; }
+    .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .services { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 48px; }
+    .service-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; display: flex; gap: 16px; align-items: flex-start; transition: all 0.2s; }
+    .service-card:hover { border-color: var(--border2); transform: translateY(-2px); }
+    .service-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+    .service-body { flex: 1; }
+    .service-name { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+    .service-desc { font-size: 13px; color: var(--text2); line-height: 1.5; margin-bottom: 12px; }
+    .service-status { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-family: 'JetBrains Mono', monospace; padding: 3px 10px; border-radius: 100px; background: rgba(34,197,94,0.1); color: #86efac; border: 1px solid rgba(34,197,94,0.2); }
+    .service-status-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--green); }
+    .c-blue { background: rgba(59,130,246,0.15); }
+    .c-teal { background: rgba(20,184,166,0.15); }
+    .c-green { background: rgba(34,197,94,0.12); }
+    .c-purple { background: rgba(168,85,247,0.12); }
+    .c-amber { background: rgba(245,158,11,0.12); }
+    .c-pink { background: rgba(236,72,153,0.12); }
+    .arch { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 32px; margin-bottom: 48px; }
+    .arch-flow { display: flex; align-items: center; justify-content: center; gap: 0; flex-wrap: wrap; margin-top: 24px; }
+    .arch-node { background: var(--surface2); border: 1px solid var(--border2); border-radius: 12px; padding: 12px 20px; text-align: center; min-width: 110px; margin: 8px 0; }
+    .arch-node-icon { font-size: 22px; margin-bottom: 4px; }
+    .arch-node-label { font-size: 11px; color: var(--text2); font-family: 'JetBrains Mono', monospace; }
+    .arch-arrow { color: var(--text3); font-size: 18px; padding: 0 8px; }
+    .footer { text-align: center; padding-top: 48px; border-top: 1px solid var(--border); }
+    .footer-name { font-size: 13px; color: var(--text3); font-family: 'JetBrains Mono', monospace; }
+    .footer-name strong { color: var(--blue); }
+    .tags { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+    .tag { font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--text3); border: 1px solid var(--border); border-radius: 100px; padding: 4px 12px; }
+    .fade-in { opacity: 0; transform: translateY(16px); animation: fadeIn 0.5s forwards; }
+    @keyframes fadeIn { to { opacity: 1; transform: none; } }
+    .d1{animation-delay:0.1s}.d2{animation-delay:0.2s}.d3{animation-delay:0.3s}.d4{animation-delay:0.4s}.d5{animation-delay:0.5s}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header fade-in d1">
+    <div class="badge"><div class="badge-dot"></div>All Systems Operational</div>
+    <h1>AWS <span>End-to-End<br>Security Framework</span></h1>
+    <p class="subtitle">A production-grade cloud security deployment built from the ground up using AWS CLI — covering identity, storage, logging, networking, compute, and monitoring.</p>
+    <div class="meta">
+      <div class="meta-item">Region: <span>us-east-1</span></div>
+      <div class="meta-item">Deployed via: <span>AWS CLI</span></div>
+      <div class="meta-item">OS: <span>Ubuntu Linux</span></div>
+      <div class="meta-item">Author: <span>John</span></div>
+    </div>
+  </div>
+  <div class="stats fade-in d2">
+    <div class="stat-card"><div class="stat-num">6</div><div class="stat-label">AWS Services</div></div>
+    <div class="stat-card"><div class="stat-num">100%</div><div class="stat-label">CLI Deployed</div></div>
+    <div class="stat-card"><div class="stat-num">0</div><div class="stat-label">Public Exposures</div></div>
+    <div class="stat-card"><div class="stat-num">24/7</div><div class="stat-label">Monitoring Active</div></div>
+  </div>
+  <div class="section-title fade-in d3">Deployed Services</div>
+  <div class="services fade-in d3">
+    <div class="service-card"><div class="service-icon c-blue">🔐</div><div class="service-body"><div class="service-name">IAM</div><div class="service-desc">Least privilege roles, strong password policy, EC2 instance profiles with scoped permissions.</div><div class="service-status"><div class="service-status-dot"></div>Active</div></div></div>
+    <div class="service-card"><div class="service-icon c-amber">🪣</div><div class="service-body"><div class="service-name">S3 Audit Vault</div><div class="service-desc">Encrypted, versioned, fully private bucket with resource-based policy for CloudTrail delivery.</div><div class="service-status"><div class="service-status-dot"></div>Active</div></div></div>
+    <div class="service-card"><div class="service-icon c-purple">🔍</div><div class="service-body"><div class="service-name">CloudTrail</div><div class="service-desc">Multi-region trail capturing all API activity with log file validation for tamper-proof records.</div><div class="service-status"><div class="service-status-dot"></div>Logging</div></div></div>
+    <div class="service-card"><div class="service-icon c-teal">🌐</div><div class="service-body"><div class="service-name">VPC</div><div class="service-desc">Isolated network with public and private subnets, internet gateway, route tables, and security groups.</div><div class="service-status"><div class="service-status-dot"></div>Active</div></div></div>
+    <div class="service-card"><div class="service-icon c-green">🖥️</div><div class="service-body"><div class="service-name">EC2 Web Server</div><div class="service-desc">Hardened t2.micro with Apache, Elastic IP, IAM role, and IMDSv2 enforced for metadata security.</div><div class="service-status"><div class="service-status-dot"></div>Running</div></div></div>
+    <div class="service-card"><div class="service-icon c-pink">📊</div><div class="service-body"><div class="service-name">CloudWatch + SNS</div><div class="service-desc">CPU alarms, log metric filters, and real-time email alerts via SNS for operational threat visibility.</div><div class="service-status"><div class="service-status-dot"></div>Monitoring</div></div></div>
+  </div>
+  <div class="section-title fade-in d4">Architecture Flow</div>
+  <div class="arch fade-in d4">
+    <div class="arch-flow">
+      <div class="arch-node"><div class="arch-node-icon">🌍</div><div class="arch-node-label">Internet</div></div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-node"><div class="arch-node-icon">🚪</div><div class="arch-node-label">IGW</div></div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-node"><div class="arch-node-icon">🌐</div><div class="arch-node-label">Public Subnet</div></div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-node"><div class="arch-node-icon">🖥️</div><div class="arch-node-label">EC2 + Apache</div></div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-node"><div class="arch-node-icon">📋</div><div class="arch-node-label">CloudTrail → S3</div></div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-node"><div class="arch-node-icon">🔔</div><div class="arch-node-label">CloudWatch → SNS</div></div>
+    </div>
+  </div>
+  <div class="footer fade-in d5">
+    <div class="footer-name">Built by <strong>John</strong> · AWS Security Engineer · 2026</div>
+    <div class="tags">
+      <div class="tag">aws-cli</div>
+      <div class="tag">security-first</div>
+      <div class="tag">least-privilege</div>
+      <div class="tag">infrastructure-as-code</div>
+      <div class="tag">cloud-security</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
