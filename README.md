@@ -173,7 +173,7 @@ Real-time monitoring and automated threat alerting.
 
 ---
 
-## 🛡️ Security Validation
+## 🛡️ Security Simulation
 
 Three real-world attack scenarios were tested against this deployment:
 
@@ -183,7 +183,7 @@ Three real-world attack scenarios were tested against this deployment:
 | SSH Brute Force | Blocked | Key Pair Auth · Security Group |
 | Log Tampering | Blocked + Preserved | S3 Policy · Versioning · CloudTrail |
 
-📄 [View Full Security Validation Report](SECURITY_VALIDATION.md)
+📄 [View Full Security Simulation Report](SECURITY_SIMULATION.md)
 
 ---
 
@@ -246,7 +246,7 @@ aws-end-to-end-security-framework/
 ├── cloudwatch-sns-setup.sh   # Phase 6 — Monitoring & alerts
 ├── index.html                # Live web server homepage
 ├── architecture.md           # Interactive architecture diagram
-├── SECURITY_VALIDATION.md    # Attack simulation scenarios
+├── SECURITY_SIMULATION.md    # Attack simulation scenarios
 ├── README.md                 # This file
 └── screenshots/              # AWS console verification proof
 ```

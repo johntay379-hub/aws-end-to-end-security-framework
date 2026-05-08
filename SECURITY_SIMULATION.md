@@ -1,4 +1,4 @@
-# 🛡️ Security Validation
+# 🛡️ Security Simulation
 
 > Real-world attack scenarios tested against this deployment to validate every security control works as expected.
 
